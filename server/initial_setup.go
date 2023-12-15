@@ -15,6 +15,10 @@ import (
 
 func initialSetup(ds model.DataStore) {
 	_ = ds.WithTx(func(tx model.DataStore) error {
+		if err := createOrUpdateMusicFolder(ds); err != nil {
+			return err
+		}
+
 		properties := ds.Property(context.TODO())
 		_, err := properties.Get(consts.InitialSetupFlagKey)
 		if err == nil {
@@ -109,4 +113,13 @@ func checkExternalCredentials() {
 			log.Debug("Spotify integration is ENABLED")
 		}
 	}
+}
+
+func createOrUpdateMusicFolder(ds model.DataStore) error {
+	lib := model.Library{ID: 1, Name: "Music Library", Path: conf.Server.MusicFolder}
+	err := ds.Library(context.TODO()).Put(&lib)
+	if err != nil {
+		log.Error("Could not access Library table", err)
+	}
+	return err
 }
